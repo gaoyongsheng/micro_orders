@@ -1,16 +1,24 @@
 package com.shopping.micro.orders.service.impl;
 
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.shopping.micro.orders.configuration.interceptor.MyInterceptor;
 import com.shopping.micro.orders.constants.ShopExceptionCode;
 import com.shopping.micro.orders.cro.OrderCreateCro;
 import com.shopping.micro.orders.cro.OrderPageConditionCro;
 import com.shopping.micro.orders.cro.OrderPageCro;
-import com.shopping.micro.orders.entity.Order;
-import com.shopping.micro.orders.entity.ShopCart;
+import com.shopping.micro.orders.entity.*;
 import com.shopping.micro.orders.exception.MyShopException;
+import com.shopping.micro.orders.remote.FeignGoodsService;
+import com.shopping.micro.orders.remote.FeignUserService;
 import com.shopping.micro.orders.repository.OrderRepository;
 import com.shopping.micro.orders.service.OrderService;
 import com.shopping.micro.orders.service.ShopCartService;
 import com.shopping.micro.orders.utils.DateTimeUtils;
+import com.shopping.micro.orders.utils.ThreadLocalUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -38,17 +46,19 @@ import java.util.Set;
 @Transactional
 public class OrderServiceImpl extends AbstractBaseImpl implements OrderService {
 
+    private static final Logger LOG = LoggerFactory.getLogger(MyInterceptor.class);
+
     @Autowired
     OrderRepository orderRepository;
-
-//    @Autowired
-//    GoodsService goodsService;
 
     @Autowired
     ShopCartService shopCartService;
 
-//    @Autowired
-//    AddressService addressService;
+    @Autowired
+    FeignUserService feignUserService;
+
+    @Autowired
+    FeignGoodsService feignGoodsService;
 
     @Override
     public Order createOrder(OrderCreateCro orderCreateCro) {
@@ -58,10 +68,15 @@ public class OrderServiceImpl extends AbstractBaseImpl implements OrderService {
         shopCart.setCount(orderCreateCro.getCount());
         shopCart.setTotalPrice(orderCreateCro.getPrice());
 
-//        Set<Goods> goodsList = new HashSet<Goods>();
-//        Goods curGoods = goodsService.findGoodsById(orderCreateCro.getGoodsId());
-//        goodsList.add(curGoods);
-//        shopCart.setGoodsList(goodsList);
+        Set<Goods> goodsList = new HashSet<Goods>();
+
+        JSONObject result = feignGoodsService.findGoodsById(orderCreateCro.getGoodsId());
+        Goods curGoods = JSON.toJavaObject(result.getJSONObject("data"),Goods.class);
+
+        LOG.info("************curLoginUser*********[{}]",curGoods.toString());
+
+        goodsList.add(curGoods);
+        shopCart.setGoodsList(goodsList);
 
         ShopCart temp = shopCartService.createShopCart(shopCart);
 
@@ -74,11 +89,15 @@ public class OrderServiceImpl extends AbstractBaseImpl implements OrderService {
         order.setOrderTotalPrice(orderCreateCro.getPrice());
         order.setOrderStatus(0+"");
 
-//        User curUser = (User) ThreadLocalUtils.get();
-//        order.setUser(curUser);
-//
-//        Address addr = addressService.findAddressById(strToLong(orderCreateCro.getAddressId()));
-//        order.setAddress(addr);
+        User curUser = (User) ThreadLocalUtils.get();
+        order.setUser(curUser);
+
+        JSONObject resultAddr = feignUserService.findAddressByAddrId(strToLong(orderCreateCro.getAddressId()));
+        Address addr = JSON.toJavaObject(resultAddr.getJSONObject("data"), Address.class);
+
+        LOG.info("************curLoginUser*********[{}]",addr.toString());
+
+        order.setAddress(addr);
 
         return orderRepository.save(order);
     }
@@ -137,6 +156,11 @@ public class OrderServiceImpl extends AbstractBaseImpl implements OrderService {
         }, pageable);
 
         return orderPage;
+    }
+
+    @Override
+    public JSONObject getCurLoginUser(String serviceId) {
+        return feignUserService.findUserByUserNameOrMobile(serviceId);
     }
 
 }

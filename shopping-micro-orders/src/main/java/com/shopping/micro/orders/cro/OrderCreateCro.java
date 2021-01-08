@@ -9,9 +9,6 @@ import com.shopping.micro.orders.cro.base.BaseCro;
  */
 public class OrderCreateCro extends BaseCro {
 
-//    @Autowired
-//    GoodsService goodsService;
-
     private Long goodsId;// 商品id
 
     private String count;// 购买商品数量

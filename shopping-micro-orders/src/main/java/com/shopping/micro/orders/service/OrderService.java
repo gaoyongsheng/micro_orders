@@ -1,5 +1,6 @@
 package com.shopping.micro.orders.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.shopping.micro.orders.cro.OrderCreateCro;
 import com.shopping.micro.orders.cro.OrderPageConditionCro;
 import com.shopping.micro.orders.cro.OrderPageCro;
@@ -22,5 +23,7 @@ public interface OrderService {
     void deleteOrder(Long id);
 
     Page<Order> findAllWitnCondition(OrderPageConditionCro orderPageConditionCro);
+
+    JSONObject getCurLoginUser(String serviceId);
 
 }

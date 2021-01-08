@@ -29,16 +29,13 @@ public class Order extends BaseModel<OrderDto> {
     @Column(name = DaoConstant.ORDERS_TOTAL_PRICE)
     private String orderTotalPrice;
 
-//    @Column(name = DaoConstant.ORDERS_USER_ID)
-//    private String orderUserId;
+    @ManyToOne(cascade = CascadeType.REFRESH,fetch = FetchType.EAGER)
+    @JoinColumn(name = DaoConstant.ORDERS_USER_ID)
+    private User user;
 
-//    @ManyToOne(cascade = CascadeType.REFRESH,fetch = FetchType.EAGER)
-//    @JoinColumn(name = DaoConstant.ORDERS_USER_ID)
-//    private User user;
-
-//    @ManyToOne(cascade = CascadeType.REFRESH,fetch = FetchType.EAGER)
-//    @JoinColumn(name = DaoConstant.ORDERS_ADDRESS_ID)
-//    private Address address;
+    @ManyToOne(cascade = CascadeType.REFRESH,fetch = FetchType.EAGER)
+    @JoinColumn(name = DaoConstant.ORDERS_ADDRESS_ID)
+    private Address address;
 
     @Column(name = DaoConstant.ORDERS_ADD_TIME)
     private String orderAddTime;
@@ -49,23 +46,23 @@ public class Order extends BaseModel<OrderDto> {
 
     public Order(){}
 
-//    public Order(OrderDto orderDto){
-//        this.orderCode = orderDto.getOrderCode();
-//        this.orderStatus = orderDto.getOrderStatus();
-//        this.orderTotalPrice = orderDto.getOrderTotalPrice();
-//        this.orderAddTime = orderDto.getOrderAddTime();
-//    }
+    public Order(OrderDto orderDto){
+        this.orderCode = orderDto.getOrderCode();
+        this.orderStatus = orderDto.getOrderStatus();
+        this.orderTotalPrice = orderDto.getOrderTotalPrice();
+        this.orderAddTime = orderDto.getOrderAddTime();
+    }
 
 
 
     @Override
     public OrderDto toDto() {
-//        OrderDto orderDto = new OrderDto();
-//        orderDto.setId(id);
-//        orderDto.setOrderCode(orderCode);
-//        orderDto.setOrderStatus(orderStatus);
-//        orderDto.setOrderTotalPrice(orderTotalPrice);
-//        orderDto.setOrderAddTime(orderAddTime);
+        OrderDto orderDto = new OrderDto();
+        orderDto.setId(id);
+        orderDto.setOrderCode(orderCode);
+        orderDto.setOrderStatus(orderStatus);
+        orderDto.setOrderTotalPrice(orderTotalPrice);
+        orderDto.setOrderAddTime(orderAddTime);
         return null;
     }
 }
