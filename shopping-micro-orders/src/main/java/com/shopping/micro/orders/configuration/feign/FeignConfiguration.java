@@ -1,8 +1,13 @@
 package com.shopping.micro.orders.configuration.feign;
 
+import com.alibaba.fastjson.JSONObject;
 import com.shopping.micro.orders.configuration.interceptor.MyInterceptor;
+import com.shopping.micro.orders.exception.MyShopException;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
+import feign.Response;
+import feign.Util;
+import feign.codec.ErrorDecoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
@@ -19,7 +24,7 @@ import java.util.Enumeration;
  */
 
 @Configuration
-public class FeignConfiguration implements RequestInterceptor {
+public class FeignConfiguration implements RequestInterceptor , ErrorDecoder {
 
     private static final Logger LOG = LoggerFactory.getLogger(MyInterceptor.class);
 
@@ -30,13 +35,25 @@ public class FeignConfiguration implements RequestInterceptor {
         Enumeration<String> headerNames = request.getHeaderNames();
         if (headerNames != null) {
             while (headerNames.hasMoreElements()) {
-
                 String name = headerNames.nextElement();
                 String values = request.getHeader(name);
                 requestTemplate.header(name, values);
-
             }
+        }
+    }
 
+
+    @Override
+    public MyShopException decode(String methodKey, Response response) {
+        try {
+            // 获取异常信息
+            String message = Util.toString(response.body().asReader());
+            JSONObject jsonObject = JSONObject.parseObject(message);
+            LOG.info("========获取异常信息========" + message); //记录日志
+            //直接上抛自定义异常
+            return new MyShopException(jsonObject.getInteger("status")+"", jsonObject.getString("message"));
+        } catch (Exception ex) {
+            return new MyShopException("999999",ex.getMessage());
         }
     }
 }

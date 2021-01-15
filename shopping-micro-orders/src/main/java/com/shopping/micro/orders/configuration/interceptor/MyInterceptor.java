@@ -20,6 +20,7 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.attribute.UserDefinedFileAttributeView;
 
 public class MyInterceptor implements HandlerInterceptor {
@@ -60,14 +61,13 @@ public class MyInterceptor implements HandlerInterceptor {
                 ThreadLocalUtils.set(curUser);
                 return true;
             } else {
-                throw new MyShopException(ShopExceptionCode.SIGNATURE_ERROR,"签名错误");
+                return errorWrite(response,ShopExceptionCode.SIGNATURE_ERROR);
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            response.sendError(500);
-            ResponseUtils.failure(ShopExceptionCode.SIGNATURE_ERROR,"签名错误");
-            return false;
+//            response.sendError(500);
+            return errorWrite(response,"999999");
         }
 
     }
@@ -80,6 +80,24 @@ public class MyInterceptor implements HandlerInterceptor {
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
         LOG.info("afterCompletion");
+    }
+
+    /**
+     * 错误拦截处理.
+     *
+     * @param resp      返回对象.
+     * @param errorCode 错误码
+     * @return false
+     * @throws IOException
+     * @author BianJiashuai
+     * @date 2018年7月6日 下午8:25:16
+     */
+    private boolean errorWrite(HttpServletResponse resp, String errorCode) throws IOException {
+        resp.setCharacterEncoding("UTF-8");
+        resp.setContentType("application/json; charset=utf-8");
+        PrintWriter pw = resp.getWriter();
+        pw.write(ResponseUtils.failure(errorCode,"签名错误").toString());
+        return false;
     }
 
 }
